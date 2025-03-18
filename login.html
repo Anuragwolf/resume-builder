@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style> :root {
+        --primary-color: #2563eb;
+        --secondary-color: #1e40af;
+        --accent-color: #fbbf24;
+        --text-color: #1f2937;
+        --bg-color: #f3f4f6;
+    }
+
+    * {
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+</style>
+<script src="script.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="site-name animate__animated animate__fadeIn">NaukriReady - Find Your Dream Job</div>
+    <div class="navbar animate__animated animate__slideInDown">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
+        <a href="resume-maker.html"><i class="fas fa-file-alt"></i> Create Resume</a>
+        <a href="#"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="#" id="loginNavBtn" onclick="showLoginTab()" style="display: flex;"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <div class="user-profile" id="userProfile" onclick="toggleAccountDropdown(event)" style="display: none;">
+            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&amp;background=random" alt="User Avatar">
+            <span class="username" id="username">User</span>
+            <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+            
+            <div class="account-dropdown" id="accountDropdown">
+                <div class="account-dropdown-header">
+                    <img id="userAvatarDropdown" src="https://ui-avatars.com/api/?name=User&amp;background=random" alt="User Avatar">
+                    <h3 id="userNameDropdown">User</h3>
+                    <p id="userEmailDropdown">user@example.com</p>
+                </div>
+                <ul class="account-dropdown-menu">
+                    <li><a href="#"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
+                    <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Account Settings</a></li>
+                    <li class="logout-option"><a href="#" onclick="logout(event)"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="auth-container animate__animated animate__fadeInUp" id="authContainer" style="display: block;">
+        <h2><i class="fas fa-user-circle"></i> Account Access</h2>
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="loginTab" onclick="showLoginTab()">Login</button>
+            <button class="auth-tab" id="signupTab" onclick="showSignupTab()">Sign Up</button>
+        </div>
+
+        <form id="loginForm" class="auth-form active">
+            <div class="form-group">
+                <label for="loginEmail"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email" required="">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter your password" required="">
+            </div>
+            <button type="button" class="auth-btn" onclick="login()">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            <div class="auth-message" id="loginMessage"></div>
+
+            <div class="auth-separator">Or</div>
+            <button type="button" class="auth-btn" style="background-color: #4285F4;">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
+        </form>
+
+        <form id="signupForm" class="auth-form">
+            <div class="form-group">
+                <label for="signupName"><i class="fas fa-user"></i> Full Name</label>
+                <input type="text" id="signupName" placeholder="Enter your full name" required="">
+            </div>
+            <div class="form-group">
+                <label for="signupEmail"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="signupEmail" placeholder="Enter your email" required="">
+            </div>
+            <div class="form-group">
+                <label for="signupPassword"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="signupPassword" placeholder="Create a password" required="">
+            </div>
+            <button type="button" class="auth-btn" onclick="signup()">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+            <div class="auth-message" id="signupMessage"></div>
+
+            <div class="auth-separator">Or</div>
+            <button type="button" class="auth-btn" style="background-color: #4285F4;">
+                <i class="fab fa-google"></i> Sign up with Google
+            </button>
+        </form>
+    </div>
+</body>
+</html>

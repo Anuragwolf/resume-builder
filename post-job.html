@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post a Job - NaukriReady</title>
+    <link href="style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="script.js"></script>
+    <script src="post-job.js"></script>
+    <style>
+          :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #fbbf24;
+            --text-color: #1f2937;
+            --bg-color: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .post-job-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .post-job-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .post-job-header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .post-job-header p {
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }
+
+        .job-form {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+
+        .tag {
+            background: var(--bg-color);
+            padding: 5px 10px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tag button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        .tag button:hover {
+            color: #ff4444;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .submit-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .submit-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .preview-section {
+            margin-top: 40px;
+            padding: 20px;
+            background: var(--bg-color);
+            border-radius: 10px;
+        }
+
+        .preview-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .preview-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="site-name animate__animated animate__fadeIn">NaukriReady - Find Your Dream Job</div>
+    <div class="navbar animate__animated animate__slideInDown">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
+        <a href="resume-maker.html"><i class="fas fa-file-alt"></i> Create Resume</a>
+        <a href="#"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="login.html" id="loginNavBtn" onclick="showLoginTab()"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <div class="user-profile" id="userProfile" onclick="toggleAccountDropdown(event)">
+            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="User Avatar">
+            <span class="username" id="username">User</span>
+            <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+            
+            <div class="account-dropdown" id="accountDropdown">
+                <div class="account-dropdown-header">
+                    <img id="userAvatarDropdown" src="https://ui-avatars.com/api/?name=User&background=random" alt="User Avatar">
+                    <h3 id="userNameDropdown">User</h3>
+                    <p id="userEmailDropdown">user@example.com</p>
+                </div>
+                <ul class="account-dropdown-menu">
+                    <li><a href="#"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
+                    <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Account Settings</a></li>
+                    <li class="logout-option"><a href="#" onclick="logout(event)"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-job-container">
+        <div class="post-job-header">
+            <h1>Post a Job</h1>
+            <p>Reach thousands of qualified candidates with your job posting</p>
+        </div>
+
+        <form class="job-form" id="jobPostForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="jobTitle">Job Title</label>
+                    <input type="text" id="jobTitle" required placeholder="e.g., Senior Software Developer">
+                </div>
+                <div class="form-group">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" required placeholder="e.g., Tech Solutions Inc.">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="jobType">Job Type</label>
+                    <select id="jobType" required>
+                        <option value="">Select Job Type</option>
+                        <option value="Full Time">Full Time</option>
+                        <option value="Part Time">Part Time</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Remote">Remote</option>
+                        <option value="Hybrid">Hybrid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="experience">Experience Level</label>
+                    <select id="experience" required>
+                        <option value="">Select Experience Level</option>
+                        <option value="Entry Level">Entry Level</option>
+                        <option value="Mid Level">Mid Level</option>
+                        <option value="Senior Level">Senior Level</option>
+                        <option value="Lead">Lead</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" required placeholder="e.g., Mumbai, Maharashtra">
+                </div>
+                <div class="form-group">
+                    <label for="salary">Salary Range</label>
+                    <input type="text" id="salary" required placeholder="e.g., ₹10L - ₹15L">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Job Description</label>
+                <textarea id="description" required placeholder="Describe the role, responsibilities, and requirements..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="requirements">Requirements</label>
+                <textarea id="requirements" required placeholder="List the required skills, qualifications, and experience..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags (Press Enter to add)</label>
+                <div class="tags-input" id="tagsInput">
+                    <input type="text" id="tagInput" placeholder="e.g., JavaScript, React, 5+ Years">
+                </div>
+                <div id="tagsList" class="tags-list"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="deadline">Application Deadline</label>
+                <input type="date" id="deadline" required>
+            </div>
+
+            <button type="submit" class="submit-btn">Post Job</button>
+        </form>
+
+        <div class="preview-section">
+            <h2>Job Preview</h2>
+            <div class="preview-card" id="jobPreview">
+                <!-- Preview will be dynamically updated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>NaukriReady</h3>
+                <p>Founded by Anurag Chouhan, NaukriReady is your trusted partner in finding the perfect job opportunity that matches your skills and aspirations.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>For Job Seekers</h3>
+                <ul>
+                    <li><a href="#">Browse Jobs</a></li>
+                    <li><a href="#">Create Resume</a></li>
+                    <li><a href="#">Job Alerts</a></li>
+                    <li><a href="#">Career Advice</a></li>
+                    <li><a href="#">Salary Calculator</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>For Employers</h3>
+                <ul>
+                    <li><a href="#">Post a Job</a></li>
+                    <li><a href="#">Browse Candidates</a></li>
+                    <li><a href="#">Recruitment Solutions</a></li>
+                    <li><a href="#">Pricing Plans</a></li>
+                    <li><a href="#">Enterprise Solutions</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Contact Us</h3>
+                <ul class="contact-info">
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Business Park, Cyber City, Gurugram</li>
+                    <li><i class="fas fa-phone"></i> +91 1234567890</li>
+                    <li><i class="fas fa-envelope"></i> info@naukriready.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 NaukriReady. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Policy</a>
+                <a href="#">Sitemap</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Handle tag input
+        const tagInput = document.getElementById('tagInput');
+        const tagsList = document.getElementById('tagsList');
+        const tags = new Set();
+
+        tagInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tag = this.value.trim();
+                if (tag && !tags.has(tag)) {
+                    tags.add(tag);
+                    const tagElement = document.createElement('div');
+                    tagElement.className = 'tag';
+                    tagElement.innerHTML = `
+                        ${tag}
+                        <button type="button" onclick="removeTag('${tag}')">&times;</button>
+                    `;
+                    tagsList.appendChild(tagElement);
+                    this.value = '';
+                    updatePreview();
+                }
+            }
+        });
+
+        function removeTag(tag) {
+            tags.delete(tag);
+            updatePreview();
+        }
+
+        // Live preview
+        function updatePreview() {
+            const preview = document.getElementById('jobPreview');
+            const title = document.getElementById('jobTitle').value;
+            const company = document.getElementById('companyName').value;
+            const type = document.getElementById('jobType').value;
+            const location = document.getElementById('location').value;
+            const salary = document.getElementById('salary').value;
+            const description = document.getElementById('description').value;
+            const experience = document.getElementById('experience').value;
+
+            preview.innerHTML = `
+                <h3 class="job-title">${title || 'Job Title'}</h3>
+                <p class="company-name">${company || 'Company Name'}</p>
+                <div class="job-meta">
+                    <span><i class="fas fa-map-marker-alt"></i> ${location || 'Location'}</span>
+                    <span><i class="fas fa-briefcase"></i> ${type || 'Job Type'}</span>
+                    <span><i class="fas fa-money-bill-wave"></i> ${salary || 'Salary'}</span>
+                    <span><i class="fas fa-clock"></i> Posted Today</span>
+                </div>
+                <p class="job-description">${description || 'Job description will appear here...'}</p>
+                <div class="job-tags">
+                    ${Array.from(tags).map(tag => `<span class="job-tag">${tag}</span>`).join('')}
+                    ${experience ? `<span class="job-tag">${experience}</span>` : ''}
+                </div>
+            `;
+        }
+
+        // Add event listeners for live preview
+        document.querySelectorAll('.job-form input, .job-form select, .job-form textarea').forEach(input => {
+            input.addEventListener('input', updatePreview);
+        });
+
+        // Form submission
+        document.getElementById('jobPostForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Check if user is logged in
+            if (!isLoggedIn()) {
+                alert('Please log in to post a job');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Check if user is an employer
+            if (!isEmployer()) {
+                alert('Please upgrade your account to employer to post jobs');
+                return;
+            }
+
+            // Collect form data
+            const jobData = {
+                title: document.getElementById('jobTitle').value,
+                company: document.getElementById('companyName').value,
+                type: document.getElementById('jobType').value,
+                location: document.getElementById('location').value,
+                salary: document.getElementById('salary').value,
+                description: document.getElementById('description').value,
+                requirements: document.getElementById('requirements').value,
+                tags: Array.from(tags),
+                experience: document.getElementById('experience').value,
+                deadline: document.getElementById('deadline').value,
+                postedDate: new Date().toISOString()
+            };
+
+            // Here you would typically send this data to your backend
+            console.log('Job Data:', jobData);
+            
+            // Show success message
+            alert('Job posted successfully!');
+            window.location.href = 'jobs.html';
+        });
+
+        // Helper functions
+        function isLoggedIn() {
+            // Implement your login check logic
+            return true; // For demo purposes
+        }
+
+        function isEmployer() {
+            // Implement your employer check logic
+            return true; // For demo purposes
+        }
+    </script>
+</body>
+</html> 

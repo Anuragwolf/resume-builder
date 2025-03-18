@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NaukriReady - Resume Maker</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #fbbf24;
+            --text-color: #1f2937;
+            --bg-color: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .resume-form, .resume-preview {
+                width: 100% !important;
+            }
+        }
+
+        .resume-form, .resume-preview {
+            width: 50%;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .resume-form label {
+            display: block;
+            margin: 15px 0 5px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .resume-form input, .resume-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .resume-form input:focus, .resume-form textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .photo-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid var(--primary-color);
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative;
+            background: #f3f4f6;
+        }
+
+        .photo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-upload label.upload-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .photo-upload label.upload-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .save-btn {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .resume-box {
+            padding: 25px;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .resume-box h3 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .preview-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: block;
+            border: 3px solid var(--primary-color);
+        }
+
+        .section {
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .skills-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .skill-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="site-name animate__animated animate__fadeIn">NaukriReady - Find Your Dream Job</div>
+    <div class="navbar animate__animated animate__slideInDown">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
+        <a href="#"><i class="fas fa-file-upload"></i> Upload Resume</a>
+        <a href="#"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="login.html" id="loginNavBtn" onclick="showLoginTab()" style="display: flex;"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <div class="user-profile" id="userProfile" onclick="toggleAccountDropdown(event)" style="display: none;">
+            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&amp;background=random" alt="User Avatar">
+            <span class="username" id="username">User</span>
+            <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+            
+            <div class="account-dropdown" id="accountDropdown">
+                <div class="account-dropdown-header">
+                    <img id="userAvatarDropdown" src="https://ui-avatars.com/api/?name=User&amp;background=random" alt="User Avatar">
+                    <h3 id="userNameDropdown">User</h3>
+                    <p id="userEmailDropdown">user@example.com</p>
+                </div>
+                <ul class="account-dropdown-menu">
+                    <li><a href="#"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
+                    <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Account Settings</a></li>
+                    <li class="logout-option"><a href="#" onclick="logout(event)"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="resume-form animate__animated animate__fadeInLeft">
+            <h2><i class="fas fa-edit"></i> Create Your Resume</h2>
+            
+            <div class="photo-upload">
+                <div class="photo-preview">
+                    <img id="preview-img" src="https://via.placeholder.com/150" alt="Profile photo preview">
+                </div>
+                <label class="upload-btn">
+                    <i class="fas fa-camera"></i> Upload Photo
+                    <input type="file" id="photo" accept="image/*" style="display: none;" onchange="previewImage(event)">
+                </label>
+            </div>
+
+            <label for="name"><i class="fas fa-user"></i> Full Name:</label>
+            <input type="text" id="name" placeholder="Enter your name" oninput="updateResume()">
+            
+            <label for="email"><i class="fas fa-envelope"></i> Email:</label>
+            <input type="email" id="email" placeholder="Enter your email" oninput="updateResume()">
+            
+            <label for="phone"><i class="fas fa-phone"></i> Phone:</label>
+            <input type="text" id="phone" placeholder="Enter your phone number" oninput="updateResume()">
+            
+            <label for="summary"><i class="fas fa-file-alt"></i> Professional Summary:</label>
+            <textarea id="summary" placeholder="Write a short summary" rows="4" oninput="updateResume()"></textarea>
+
+            <label for="skills"><i class="fas fa-star"></i> Skills (comma-separated):</label>
+            <input type="text" id="skills" placeholder="Enter your skills" oninput="updateResume()">
+            
+            <button class="save-btn" onclick="saveResumeAsPDF()">
+                <i class="fas fa-download"></i> Save as PDF
+            </button>
+        </div>
+        
+        <div class="resume-preview animate__animated animate__fadeInRight">
+            <h2><i class="fas fa-eye"></i> Resume Preview</h2>
+            <div class="resume-box" id="resume-content">
+                <img id="preview-photo" class="preview-photo" src="https://via.placeholder.com/150" alt="Profile photo">
+                <h3><span id="preview-name">Your Name</span></h3>
+                <div class="section">
+                    <p><i class="fas fa-envelope"></i> <strong>Email:</strong> <span id="preview-email">your.email@example.com</span></p>
+                    <p><i class="fas fa-phone"></i> <strong>Phone:</strong> <span id="preview-phone">123-456-7890</span></p>
+                </div>
+                <div class="section">
+                    <h4><i class="fas fa-file-alt"></i> Professional Summary</h4>
+                    <p id="preview-summary">Your summary will appear here...</p>
+                </div>
+                <div class="section">
+                    <h4><i class="fas fa-star"></i> Skills</h4>
+                    <div class="skills-section" id="preview-skills"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-img').src = e.target.result;
+                    document.getElementById('preview-photo').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateResume() {
+            document.getElementById("preview-name").innerText = document.getElementById("name").value || "Your Name";
+            document.getElementById("preview-email").innerText = document.getElementById("email").value || "your.email@example.com";
+            document.getElementById("preview-phone").innerText = document.getElementById("phone").value || "123-456-7890";
+            document.getElementById("preview-summary").innerText = document.getElementById("summary").value || "Your summary will appear here...";
+            
+            // Update skills
+            const skillsInput = document.getElementById("skills").value;
+            const skillsContainer = document.getElementById("preview-skills");
+            skillsContainer.innerHTML = '';
+            
+            if (skillsInput) {
+                const skills = skillsInput.split(',').map(skill => skill.trim());
+                skills.forEach(skill => {
+                    if (skill) {
+                        const skillTag = document.createElement('span');
+                        skillTag.className = 'skill-tag animate__animated animate__fadeIn';
+                        skillTag.textContent = skill;
+                        skillsContainer.appendChild(skillTag);
+                    }
+                });
+            }
+        }
+
+        function saveResumeAsPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Add profile photo
+            const photoElement = document.getElementById('preview-photo');
+            if (photoElement.src !== 'https://via.placeholder.com/150') {
+                try {
+                    doc.addImage(photoElement.src, 'JPEG', 85, 20, 40, 40);
+                } catch (e) {
+                    console.error('Error adding image to PDF:', e);
+                }
+            }
+
+            doc.setFont("helvetica", "bold");
+            doc.text("Resume", 105, 70, null, null, "center");
+            
+            doc.setFont("helvetica", "normal");
+            doc.text("Name: " + document.getElementById("preview-name").innerText, 20, 90);
+            doc.text("Email: " + document.getElementById("preview-email").innerText, 20, 100);
+            doc.text("Phone: " + document.getElementById("preview-phone").innerText, 20, 110);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text("Professional Summary:", 20, 130);
+            doc.setFont("helvetica", "normal");
+            doc.text(document.getElementById("preview-summary").innerText, 20, 140, { maxWidth: 170 });
+            
+            // Add skills
+            const skillsContainer = document.getElementById("preview-skills");
+            if (skillsContainer.children.length > 0) {
+                doc.setFont("helvetica", "bold");
+                doc.text("Skills:", 20, 180);
+                doc.setFont("helvetica", "normal");
+                const skills = Array.from(skillsContainer.children).map(skill => skill.textContent).join(", ");
+                doc.text(skills, 20, 190, { maxWidth: 170 });
+            }
+            
+            doc.save("Resume.pdf");
+        }
+    </script>
+</body>
+</html>
