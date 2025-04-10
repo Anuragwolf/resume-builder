@@ -338,118 +338,130 @@
     </footer>
 
     <script>
-        // Handle tag input
-        const tagInput = document.getElementById('tagInput');
-        const tagsList = document.getElementById('tagsList');
-        const tags = new Set();
+        // Initialize tags array
+        let tags = [];
 
-        tagInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const tag = this.value.trim();
-                if (tag && !tags.has(tag)) {
-                    tags.add(tag);
-                    const tagElement = document.createElement('div');
-                    tagElement.className = 'tag';
-                    tagElement.innerHTML = `
-                        ${tag}
-                        <button type="button" onclick="removeTag('${tag}')">&times;</button>
-                    `;
-                    tagsList.appendChild(tagElement);
-                    this.value = '';
-                    updatePreview();
-                }
-            }
-        });
-
-        function removeTag(tag) {
-            tags.delete(tag);
-            updatePreview();
-        }
-
-        // Live preview
-        function updatePreview() {
-            const preview = document.getElementById('jobPreview');
-            const title = document.getElementById('jobTitle').value;
-            const company = document.getElementById('companyName').value;
-            const type = document.getElementById('jobType').value;
-            const location = document.getElementById('location').value;
-            const salary = document.getElementById('salary').value;
-            const description = document.getElementById('description').value;
-            const experience = document.getElementById('experience').value;
-
-            preview.innerHTML = `
-                <h3 class="job-title">${title || 'Job Title'}</h3>
-                <p class="company-name">${company || 'Company Name'}</p>
-                <div class="job-meta">
-                    <span><i class="fas fa-map-marker-alt"></i> ${location || 'Location'}</span>
-                    <span><i class="fas fa-briefcase"></i> ${type || 'Job Type'}</span>
-                    <span><i class="fas fa-money-bill-wave"></i> ${salary || 'Salary'}</span>
-                    <span><i class="fas fa-clock"></i> Posted Today</span>
-                </div>
-                <p class="job-description">${description || 'Job description will appear here...'}</p>
-                <div class="job-tags">
-                    ${Array.from(tags).map(tag => `<span class="job-tag">${tag}</span>`).join('')}
-                    ${experience ? `<span class="job-tag">${experience}</span>` : ''}
-                </div>
-            `;
-        }
-
-        // Add event listeners for live preview
-        document.querySelectorAll('.job-form input, .job-form select, .job-form textarea').forEach(input => {
-            input.addEventListener('input', updatePreview);
-        });
-
-        // Form submission
-        document.getElementById('jobPostForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Function to handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
             
-            // Check if user is logged in
-            if (!isLoggedIn()) {
-                alert('Please log in to post a job');
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Check if user is an employer
-            if (!isEmployer()) {
-                alert('Please upgrade your account to employer to post jobs');
-                return;
-            }
-
-            // Collect form data
-            const jobData = {
+            // Get form data
+            const formData = {
                 title: document.getElementById('jobTitle').value,
                 company: document.getElementById('companyName').value,
                 type: document.getElementById('jobType').value,
+                experience: document.getElementById('experience').value,
                 location: document.getElementById('location').value,
                 salary: document.getElementById('salary').value,
                 description: document.getElementById('description').value,
                 requirements: document.getElementById('requirements').value,
-                tags: Array.from(tags),
-                experience: document.getElementById('experience').value,
-                deadline: document.getElementById('deadline').value,
-                postedDate: new Date().toISOString()
+                tags: Array.from(document.getElementById('tagsList').children).map(tag => tag.textContent.trim()),
+                logo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(document.getElementById('companyName').value)
             };
 
-            // Here you would typically send this data to your backend
-            console.log('Job Data:', jobData);
-            
-            // Show success message
-            alert('Job posted successfully!');
-            window.location.href = 'jobs.html';
+            try {
+                // Send data to MongoDB
+                const response = await fetch('http://localhost:5000/api/jobs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to post job');
+                }
+
+                // Show success message
+                alert('Job posted successfully!');
+                
+                // Redirect to jobs page
+                window.location.href = 'jobs.html';
+            } catch (error) {
+                console.error('Error posting job:', error);
+                alert('Failed to post job. Please try again.');
+            }
+        }
+
+        // Add event listener to the form
+        document.getElementById('jobPostForm').addEventListener('submit', handleSubmit);
+
+        // Function to add tag
+        function addTag(tagText) {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag';
+            tagElement.innerHTML = `
+                ${tagText}
+                <button type="button" onclick="removeTag(this.parentElement)">×</button>
+            `;
+            document.getElementById('tagsList').appendChild(tagElement);
+            updatePreview();
+        }
+
+        // Function to remove tag
+        function removeTag(tagElement) {
+            tagElement.remove();
+            updatePreview();
+        }
+
+        // Handle tag input
+        document.getElementById('tagInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const tagText = this.value.trim();
+                if (tagText) {
+                    addTag(tagText);
+                    this.value = '';
+                }
+            }
         });
 
-        // Helper functions
-        function isLoggedIn() {
-            // Implement your login check logic
-            return true; // For demo purposes
+        // Function to update preview
+        function updatePreview() {
+            const title = document.getElementById('jobTitle').value;
+            const company = document.getElementById('companyName').value;
+            const type = document.getElementById('jobType').value;
+            const experience = document.getElementById('experience').value;
+            const location = document.getElementById('location').value;
+            const salary = document.getElementById('salary').value;
+            const description = document.getElementById('description').value;
+            const requirements = document.getElementById('requirements').value;
+            const currentTags = Array.from(document.getElementById('tagsList').children)
+                                   .map(tag => tag.textContent.trim().replace('×', ''));
+
+            const preview = document.getElementById('jobPreview');
+            preview.innerHTML = `
+                <h3>${title || 'Job Title'}</h3>
+                <p class="company-name">${company || 'Company Name'}</p>
+                <div class="job-details">
+                    <span><i class="fas fa-briefcase"></i> ${type || 'Job Type'}</span>
+                    <span><i class="fas fa-user-tie"></i> ${experience || 'Experience Level'}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${location || 'Location'}</span>
+                    <span><i class="fas fa-money-bill-wave"></i> ${salary || 'Salary Range'}</span>
+                </div>
+                <div class="job-description">
+                    <h4>Description</h4>
+                    <p>${description || 'Job Description'}</p>
+                </div>
+                <div class="job-requirements">
+                    <h4>Requirements</h4>
+                    <ul>
+                        ${requirements.split('\n').map(req => req.trim()).filter(req => req).map(req => `<li>${req}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="job-tags">
+                    ${currentTags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                </div>
+            `;
         }
 
-        function isEmployer() {
-            // Implement your employer check logic
-            return true; // For demo purposes
-        }
+        // Add event listeners to form fields for live preview
+        const formFields = ['jobTitle', 'companyName', 'jobType', 'experience', 'location', 
+                          'salary', 'description', 'requirements'];
+        formFields.forEach(fieldId => {
+            document.getElementById(fieldId).addEventListener('input', updatePreview);
+        });
     </script>
 </body>
 </html> 

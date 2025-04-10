@@ -7,7 +7,32 @@
     <link href="style.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="script.js"></script>
-    <script src="jobs.js"></script>
+    <script src="jobs.js">document.addEventListener("DOMContentLoaded", function () {
+        fetch("http://localhost:5000/api/jobs")
+            .then(response => response.json())
+            .then(jobs => {
+                const jobsContainer = document.getElementById("jobsContainer");
+                jobsContainer.innerHTML = ""; // Clear previous jobs
+    
+                jobs.forEach(job => {
+                    const jobElement = document.createElement("div");
+                    jobElement.classList.add("job-listing");
+                    jobElement.innerHTML = `
+                        <h3>${job.title}</h3>
+                        <p><strong>Company:</strong> ${job.company}</p>
+                        <p><strong>Location:</strong> ${job.location}</p>
+                        <p><strong>Salary:</strong> ${job.salary}</p>
+                        <p><strong>Type:</strong> ${job.type}</p>
+                        <p><strong>Experience:</strong> ${job.experience}</p>
+                        <p><strong>Description:</strong> ${job.description}</p>
+                        <p><strong>Deadline:</strong> ${job.deadline}</p>
+                    `;
+                    jobsContainer.appendChild(jobElement);
+                });
+            })
+            .catch(error => console.error("Error fetching jobs:", error));
+    });
+    </script>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -329,12 +354,12 @@
             </div>
         </div>
 
-        <div class="job-count" style="margin-bottom: 20px; color: var(--text-color); font-size: 1.1rem;">
+        <div class="job-count">
             Showing <span id="jobCount">0</span> jobs
         </div>
 
-        <div class="job-list">
-            <!-- Job cards will be dynamically inserted here -->
+        <div id="jobList" class="job-list">
+            <!-- Jobs will be displayed here -->
         </div>
 
         <div class="pagination">
@@ -347,6 +372,56 @@
             <a href="#" class="page-btn"><i class="fas fa-chevron-right"></i></a>
         </div>
     </div>
+
+    <div class="container">
+        <h2>Company Jobs</h2>
+        <div id="jobListings" class="row"></div>
+    </div>
+
+    <script>
+    async function fetchAndDisplayJobs() {
+        try {
+            const response = await fetch('/api/company-jobs');
+            const jobs = await response.json();
+            const jobListings = document.getElementById('jobListings');
+            
+            jobs.forEach(job => {
+                const jobCard = `
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <img src="${job.logo}" alt="${job.company} logo" style="width: 50px; height: 50px; object-fit: contain; margin-right: 15px;">
+                                    <h5 class="card-title mb-0">${job.title}</h5>
+                                </div>
+                                <h6 class="card-subtitle mb-2 text-muted">${job.company}</h6>
+                                <p class="card-text">
+                                    <strong>Location:</strong> ${job.location}<br>
+                                    <strong>Experience:</strong> ${job.experience}<br>
+                                    <strong>Salary:</strong> ${job.salary}<br>
+                                    <strong>Type:</strong> ${job.type}
+                                </p>
+                                <p class="card-text">${job.description}</p>
+                                <div class="tags">
+                                    ${job.tags.map(tag => `<span class="badge bg-secondary me-1">${tag}</span>`).join('')}
+                                </div>
+                                <p class="text-muted mt-2">
+                                    Posted: ${new Date(job.posted).toLocaleDateString()}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                jobListings.innerHTML += jobCard;
+            });
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+        }
+    }
+
+    // Call the function when the page loads
+    document.addEventListener('DOMContentLoaded', fetchAndDisplayJobs);
+    </script>
 
     <!-- Footer -->
     <footer class="footer">

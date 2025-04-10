@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | NaukriReady</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #fbbf24;
+            --text-color: #1f2937;
+            --bg-color: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .profile-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 30px;
+            border: 3px solid #2563eb;
+        }
+        .profile-info h2 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .profile-info p {
+            margin: 5px 0;
+            color: #6b7280;
+        }
+        .profile-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .profile-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        .detail-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            margin-bottom: 15px;
+        }
+        .detail-label {
+            font-weight: 600;
+        }
+        .edit-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        .edit-btn:hover {
+            background: #1e40af;
+        }
+        #loadingSpinner {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="site-name"><img src="images/job.png" class="job-img">NaukriReady - Find Your Dream Job</div>
+    <div class="navbar animate__animated animate__slideInDown">
+        <a href="#"><i class="fas fa-home"></i> Home</a>
+        <a href="jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
+        <a href="resume-maker.html"><i class="fas fa-file-alt"></i> Create Resume</a>
+        <a href="#"><i class="fas fa-info-circle"></i> About Us</a>
+        <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+        <a href="login.html" id="loginNavBtn"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <div class="user-profile" id="userProfile" style="display: none;">
+            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="User Avatar">
+            <span class="username" id="username">User</span>
+            <i class="fas fa-chevron-down dropdown-arrow"></i>
+            
+            <div class="account-dropdown" id="accountDropdown">
+                <div class="account-dropdown-header">
+                    <img id="userAvatarDropdown" src="https://ui-avatars.com/api/?name=User&background=random" alt="User Avatar">
+                    <h3 id="userNameDropdown">User</h3>
+                    <p id="userEmailDropdown">user@example.com</p>
+                </div>
+                <ul class="account-dropdown-menu">
+                    <li><a href="profile.html"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
+                    <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Account Settings</a></li>
+                    <li class="logout-option"><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingSpinner">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+        <p>Loading profile...</p>
+    </div>
+
+    <div class="profile-container" id="profileContent" style="display: none;">
+        <div class="profile-header">
+            <img id="profileAvatar" src="https://ui-avatars.com/api/?name=User&background=random&size=120" alt="Profile" class="profile-avatar">
+            <div class="profile-info">
+                <h2 id="profileName">User Name</h2>
+                <p id="profileTitle">Software Developer</p>
+                <p id="profileLocation">Bhopal, India</p>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3>Personal Information</h3>
+            <div class="detail-row">
+                <span class="detail-label">Full Name:</span>
+                <span id="userFullName">User Name</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Email:</span>
+                <span id="userEmail">user@example.com</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Phone:</span>
+                <span id="userPhone">+91 9876543210</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Location:</span>
+                <span id="userLocation">Bhopal, India</span>
+            </div>
+            <button class="edit-btn" onclick="window.location.href='edit-profile.html'">Edit Profile</button>
+        </div>
+
+        <div class="profile-section">
+            <h3>Professional Information</h3>
+            <div class="detail-row">
+                <span class="detail-label">Current Position:</span>
+                <span id="userPosition">Software Developer</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Experience:</span>
+                <span id="userExperience">3 years</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Skills:</span>
+                <span id="userSkills">JavaScript, React, Node.js</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Education:</span>
+                <span id="userEducation">B.Tech in Computer Science</span>
+            </div>
+            <button class="edit-btn" onclick="window.location.href='edit-profile.html'">Edit Professional Info</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const profileContent = document.getElementById('profileContent');
+        const loginNavBtn = document.getElementById('loginNavBtn');
+        const userProfile = document.getElementById('userProfile');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Show loading spinner and hide content initially
+        loadingSpinner.style.display = 'block';
+        profileContent.style.display = 'none';
+        userProfile.style.display = 'none';
+
+        // Check authentication status and load profile
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM fully loaded and parsed');
+            
+            try {
+                console.log('Attempting to fetch profile data...');
+                
+                // Use your actual backend URL here
+                const backendBaseURL = 'http://localhost:5000';
+                const response = await fetch(`${backendBaseURL}/profile`, {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Fetch completed, status:', response.status);
+                
+                if (response.status === 401) {
+                    console.log('Unauthorized, redirecting to login');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                if (data.success && data.user) {
+                    console.log('Updating profile with user data:', data.user);
+                    
+                    const user = data.user;
+                    
+                    // Update profile section
+                    document.getElementById('profileName').textContent = user.name || 'User Name';
+                    document.getElementById('profileTitle').textContent = user.position || 'Software Developer';
+                    document.getElementById('profileLocation').textContent = user.location || 'Bhopal, India';
+                    
+                    // Update personal info
+                    document.getElementById('userFullName').textContent = user.name || 'User Name';
+                    document.getElementById('userEmail').textContent = user.email || 'user@example.com';
+                    document.getElementById('userPhone').textContent = user.phone || '+91 9876543210';
+                    document.getElementById('userLocation').textContent = user.location || 'Bhopal, India';
+                    
+                    // Update professional info
+                    document.getElementById('userPosition').textContent = user.position || 'Software Developer';
+                    document.getElementById('userExperience').textContent = user.experience || '3 years';
+                    document.getElementById('userSkills').textContent = 
+                        user.skills ? user.skills.join(', ') : 'JavaScript, React, Node.js';
+                    document.getElementById('userEducation').textContent = user.education || 'B.Tech in Computer Science';
+                    
+                    // Update avatars
+                    const avatarUrl = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}&background=random`;
+                    document.getElementById('profileAvatar').src = avatarUrl;
+                    document.getElementById('userAvatar').src = avatarUrl;
+                    document.getElementById('userAvatarDropdown').src = avatarUrl;
+                    
+                    // Update dropdown info
+                    document.getElementById('username').textContent = user.name || 'User';
+                    document.getElementById('userNameDropdown').textContent = user.name || 'User';
+                    document.getElementById('userEmailDropdown').textContent = user.email || 'user@example.com';
+                    
+                    // Show user profile and hide login button
+                    userProfile.style.display = 'block';
+                    loginNavBtn.style.display = 'none';
+                    
+                    // Show profile content and hide spinner
+                    loadingSpinner.style.display = 'none';
+                    profileContent.style.display = 'block';
+                    
+                    console.log('Profile updated successfully');
+                } else {
+                    throw new Error(data.message || 'Invalid profile data received');
+                }
+            } catch (error) {
+                console.error('Profile error:', error);
+                alert('Error loading profile: ' + error.message);
+                window.location.href = '/login.html';
+            }
+        });
+
+        // Logout functionality
+        logoutBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            console.log('Logout initiated');
+            
+            try {
+                const response = await fetch('http://localhost:5000/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    console.log('Logout successful');
+                    window.location.href = '/login.html';
+                } else {
+                    throw new Error('Logout failed with status: ' + response.status);
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Failed to logout. Please try again.');
+            }
+        });
+
+        // Toggle dropdown menu
+        const dropdownArrow = document.querySelector('.dropdown-arrow');
+        const accountDropdown = document.getElementById('accountDropdown');
+
+        dropdownArrow.addEventListener('click', function() {
+            accountDropdown.style.display = accountDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userProfile.contains(e.target)) {
+                accountDropdown.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

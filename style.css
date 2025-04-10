@@ -21,7 +21,10 @@ style>
             padding: 0;
             color: var(--text-color);
         }
-
+        .job-img{
+            width: 50px;
+            align-items: center;
+        }
         .site-name {
             text-align: center;
             font-size: clamp(24px, 5vw, 36px);
@@ -30,7 +33,7 @@ style>
             color: white;
             padding: 20px;
             border-bottom: 5px solid var(--accent-color);
-            animation: fadeIn 1s ease-in;
+            text-shadow: 1px 1px 1px black;
         }
 
         .navbar {
@@ -75,7 +78,7 @@ style>
             position: relative;
             cursor: pointer;
             z-index: 1000;
-        }
+        }   
 
         .user-profile.active {
             background-color: white;
@@ -112,28 +115,23 @@ style>
         }
 
         .account-dropdown {
+            display: none;
             position: absolute;
             top: 100%;
             right: 0;
             width: 250px;
             background: white;
-            border-radius: 0 0 8px 8px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            padding: 0;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-2px);
-            transition: all 0.3s ease;
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-            margin-top: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            z-index: 1000;
+            overflow: hidden;
         }
 
         .account-dropdown.active {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
+            display: block;     
         }
 
         .account-dropdown-header {
@@ -267,7 +265,13 @@ style>
             background-color: var(--secondary-color);
             transform: translateY(-2px);
         }
-
+        #welcomeMessage{
+            text-align: center;
+            margin: 20px auto;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
         .auth-container {
             text-align: center;
             margin: 40px auto;

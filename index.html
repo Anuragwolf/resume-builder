@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NaukriReady - Find Your Dream Job</title>
+    <!-- React and ReactDOM (CDN-based for lightweight integration) -->
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="style.css" rel="stylesheet">
-    <script src="script.js"></script>
+    
     <style>
         :root {
             --primary-color: #2563eb;
@@ -25,7 +30,7 @@
     </style>
 </head>
 <body>
-    <div class="site-name animate__animated animate__fadeIn">NaukriReady - Find Your Dream Job</div>
+    <div class="site-name"><img src="images\job.png" class="job-img">NaukriReady - Find Your Dream Job</div>
     <div class="navbar animate__animated animate__slideInDown">
         <a href="#"><i class="fas fa-home"></i> Home</a>
         <a href="jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
@@ -33,10 +38,10 @@
         <a href="#"><i class="fas fa-info-circle"></i> About Us</a>
         <a href="#"><i class="fas fa-envelope"></i> Contact</a>
         <a href="login.html" id="loginNavBtn" onclick="showLoginTab()"><i class="fas fa-sign-in-alt"></i> Login</a>
-        <div class="user-profile" id="userProfile" onclick="toggleAccountDropdown(event)">
+        <div class="user-profile" id="userProfile">
             <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="User Avatar">
             <span class="username" id="username">User</span>
-            <i class="fas fa-chevron-down" style="font-size: 12px;"></i>
+            <i class="fas fa-chevron-down dropdown-arrow"></i>
             
             <div class="account-dropdown" id="accountDropdown">
                 <div class="account-dropdown-header">
@@ -45,7 +50,7 @@
                     <p id="userEmailDropdown">user@example.com</p>
                 </div>
                 <ul class="account-dropdown-menu">
-                    <li><a href="#"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="users/profile.html"><i class="fas fa-user-circle"></i> My Profile</a></li>
                     <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
                     <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
                     <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
@@ -63,8 +68,9 @@
         </div>
     </div>
 
-   
+    <h2 id="welcomeMessage"></h2>
 
+    
     <div class="job-categories">
         <a href="full-time-jobs.html" class="job-category animate__animated animate__fadeInUp">
             <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Full-Time Jobs">
@@ -201,15 +207,14 @@
         </div>
     </div>
 
-    <!-- Founder Section -->
     <div class="founder-section">
         <div class="founder-container">
-            <h2 class="section-title">Meet Our Founder</h2>
+            <h2 class="section-title">Meet Our Founders</h2>
             <div class="founder-content">
                 <div class="founder-image">
                     <div class="founder-photo">
                         <img src="images/anurag-chouhan.jpg" alt="Anurag Chouhan - Founder" class="founder-actual-photo">
-                        <!-- Note: Save the provided image as "anurag-chouhan.jpg" in an "images" folder -->
+                        
                     </div>
                 </div>
                 <div class="founder-info">
@@ -226,6 +231,36 @@
                     </p>
                     <p class="founder-bio">
                         His roots in Shahgarh, MP, instilled in him the values of perseverance and innovation, which 
+                        have been the guiding principles behind NaukriReady's phenomenal growth and success.
+                    </p>
+                    <div class="founder-social">
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="founder-content">
+                <div class="founder-image">
+                    <div class="founder-photo">
+                        <img src="images/pankaj.jpg" alt="pankaj - Co Founder" class="founder-actual-photo">
+                        
+                    </div>
+                </div>
+                <div class="founder-info">
+                    <h3>pankaj kumar vishwakarma</h3>
+                    <p class="founder-title">Co-Founder & CO CEO</p>
+                    <div class="founder-divider"></div>
+                    <p class="founder-bio">
+                        A passionate entrepreneur and visionary expert from jaunpur, uttar Pradesh, pankaj
+                        Co founded NaukriReady with a mission to revolutionize the way people find their dream jobs.
+                    </p>
+                    <p class="founder-bio">
+                        Pankaj completed his education at Makhanlal Chaturvedi University (MCU) in Bhopal, where he 
+                        developed a keen interest in technology and its potential to solve real-world problems.
+                    </p>
+                    <p class="founder-bio">
+                        His roots in jaunpur, UP, instilled in him the values of perseverance and innovation, which 
                         have been the guiding principles behind NaukriReady's phenomenal growth and success.
                     </p>
                     <div class="founder-social">
@@ -274,14 +309,14 @@
             <div class="footer-column">
                 <h3>Contact Us</h3>
                 <ul class="contact-info">
-                    <li><i class="fas fa-map-marker-alt"></i> 123 Business Park, Cyber City, Gurugram</li>
-                    <li><i class="fas fa-phone"></i> +91 1234567890</li>
+                    <li><i class="fas fa-map-marker-alt"></i> HOUSE 320, CHETAK BRIDGE, BHOPAL</li>
+                    <li><i class="fas fa-phone"></i> +91 7999571897</li>
                     <li><i class="fas fa-envelope"></i> info@naukriready.com</li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2023 NaukriReady. All rights reserved.</p>
+            <p> 2023 NaukriReady. All rights reserved.</p>
             <div class="footer-links">
                 <a href="#">Privacy Policy</a>
                 <a href="#">Terms of Service</a>
@@ -291,6 +326,6 @@
         </div>
     </footer>
 
-   
+    <script defer src="script.js"></script>
 </body>
 </html>
