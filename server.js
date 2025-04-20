@@ -65,14 +65,19 @@ app.use(cors({
             'http://127.0.0.1:5501',
             'http://localhost:5500',
             'http://localhost:3000',
-            'http://localhost:5173', // For Vite
-            'http://localhost:8080', // For webpack
-            'https://naukariready.vercel.app', // Add your Vercel domain
-            undefined, // For local file access
-            'null'    // For local file access
+            'http://localhost:5173',
+            'http://localhost:8080',
+            'https://naukariready.vercel.app',
+            'https://naukriready.vercel.app', // Without www
+            'https://www.naukariready.vercel.app', // With www
+            undefined,
+            'null'
         ];
 
-        if (!origin || allowedOrigins.includes(origin)) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             console.log('Blocked origin:', origin); // Debug logging
@@ -80,11 +85,19 @@ app.use(cors({
         }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ["Authorization"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+    exposedHeaders: ['Authorization'],
+    maxAge: 86400, // Cache preflight requests for 24 hours
     optionsSuccessStatus: 200
 }));
+
+// Add these headers for additional security and compatibility
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    next();
+});
 
 app.use(express.json());
 
