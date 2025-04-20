@@ -57,46 +57,29 @@ const PORT = process.env.PORT || 5000;
 // 🛠️ MIDDLEWARE SETUP
 // ==============================================
 
-// WARNING: Don't use this in production!
+// Update the CORS middleware configuration
 app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'http://127.0.0.1:5500',
-            'http://127.0.0.1:5501',
-            'http://localhost:5500',
-            'http://localhost:3000',
-            'http://localhost:5173',
-            'http://localhost:8080',
-            'https://naukariready.vercel.app',
-            'https://naukriready.vercel.app', // Without www
-            'https://www.naukariready.vercel.app', // With www
-            undefined,
-            'null'
-        ];
-
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.log('Blocked origin:', origin); // Debug logging
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true, // Allow all origins in development
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
-    exposedHeaders: ['Authorization'],
-    maxAge: 86400, // Cache preflight requests for 24 hours
-    optionsSuccessStatus: 200
+    allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
+    exposedHeaders: ['Authorization', 'Content-Type'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 }));
 
-// Add these headers for additional security and compatibility
+// Add security headers middleware after CORS
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    next();
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
 });
 
 app.use(express.json());
@@ -146,7 +129,6 @@ app.post("/signup", async (req, res) => {
     try {
         const { name, email, password, phone, location, position, experience, education } = req.body;
 
-
         if (!name || !email || !password) {
             return res.status(400).json({
                 success: false,
@@ -172,11 +154,14 @@ app.post("/signup", async (req, res) => {
             position,
             experience,
             education
-         
         });
 
         await newUser.save();
 
+        // Set CORS headers explicitly for this response
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Credentials', 'true');
+        
         res.status(201).json({
             success: true,
             message: "User created successfully",
