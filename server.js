@@ -59,31 +59,45 @@ const PORT = process.env.PORT || 5000;
 // ==============================================
 
 app.use(
-  cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        "http://127.0.0.1:5500",
-        "http://127.0.0.1:5501",
-        'https://naukariready.vercel.app',
-        "http://localhost:5500",
-        "http://localhost:3000",
-        "https://your-production-domain.com",
-      ];
-
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true, // Keep this for potential future use of cookies
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ["Authorization"],
-    optionsSuccessStatus: 200,
-  })
-);
-
+    cors({
+      origin: function (origin, callback) {
+        const allowedOrigins = [
+          // Development/localhost URLs
+          "http://127.0.0.1:5500",
+          "http://127.0.0.1:5501", 
+          "http://localhost:5500",
+          "http://localhost:3000",
+          
+          // Production domains
+          "https://your-production-domain.com",
+          "https://your-app-name.vercel.app",
+          
+          // Pattern to allow all Vercel preview deployments
+          /\.vercel\.app$/,
+          /\.vercel\.dev$/
+        ];
+  
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Check if the origin matches any allowed pattern
+        if (allowedOrigins.some(allowed => {
+          return typeof allowed === 'string' 
+            ? origin === allowed
+            : allowed.test(origin);
+        })) {
+          return callback(null, true);
+        }
+        
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      exposedHeaders: ["Authorization"],
+      optionsSuccessStatus: 200,
+    })
+  );
 app.use(express.json());
 
 // ==============================================
