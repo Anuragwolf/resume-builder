@@ -85,7 +85,7 @@ async function logout() {
         }
     } catch (error) {
         console.error("Logout error:", error);
-        alert("An error occurred during logout.");
+       
     }
 }
 }

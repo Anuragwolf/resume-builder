@@ -848,7 +848,7 @@ async function logout(event) {
     }
   } catch (error) {
     console.error("Logout error:", error);
-    alert("An error occurred during logout.");
+
 
     // If server is down, still allow client-side logout
     localStorage.removeItem("token");

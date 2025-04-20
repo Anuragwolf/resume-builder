@@ -57,24 +57,32 @@ const PORT = process.env.PORT || 5000;
 // 🛠️ MIDDLEWARE SETUP
 // ==============================================
 
-// Update the CORS middleware configuration
+const allowedOrigins = [
+    'https://naukariready.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173'
+];
+
 app.use(cors({
-    origin: true, // Allow all origins in development
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
-    exposedHeaders: ['Authorization', 'Content-Type'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    exposedHeaders: ['Authorization'],
+    optionsSuccessStatus: 200
 }));
 
-// Add security headers middleware after CORS
+// Remove or update the additional headers middleware
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
     
-    // Handle preflight
     if (req.method === 'OPTIONS') {
         res.sendStatus(200);
     } else {
