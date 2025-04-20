@@ -1,104 +1,124 @@
-// Function to fetch jobs from MongoDB
-async function fetchJobs() {
-    try {
-        const response = await fetch('http://localhost:5000/api/jobs');
-        const jobs = await response.json();
-        console.log('Fetched jobs:', jobs); // Debug log
-        return jobs;
-    } catch (error) {
-        console.error('Error fetching jobs:', error);
-        return [];
+const jobs = [
+    {
+        title: "Software Engineer",
+        company: "Tech Solutions",
+        experience: "mid",
+        type: "full-time",
+        location: "onsite",
+        description: "Develop and maintain software applications.",
+        tags: ["JavaScript", "React", "Node.js"]
+    },
+    {
+        title: "Data Analyst",
+        company: "DataCorp",
+        experience: "entry",
+        type: "full-time",
+        location: "remote",
+        description: "Analyze data and generate reports.",
+        tags: ["Excel", "SQL", "Python"]
+    },
+    {
+        title: "Project Manager",
+        company: "Business Innovations",
+        experience: "senior",
+        type: "part-time",
+        location: "hybrid",
+        description: "Manage projects and coordinate teams.",
+        tags: ["Agile", "Scrum", "Leadership"]
+    },
+    {
+        title: "Web Developer",
+        company: "Creative Agency",
+        experience: "mid",
+        type: "freelance",
+        location: "remote",
+        description: "Build and maintain websites.",
+        tags: ["HTML", "CSS", "JavaScript"]
+    },
+    {
+        title: "Graphic Designer",
+        company: "Design Studio",
+        experience: "entry",
+        type: "full-time",
+        location: "onsite",
+        description: "Create visual concepts and designs.",
+        tags: ["Photoshop", "Illustrator", "Creativity"]
     }
-}
+];
 
-// Function to create job card HTML
-function createJobCard(job) {
-    return `
-        <div class="job-card">
-            <div class="job-header">
-                <img src="${job.logo}" alt="${job.company} Logo" class="company-logo">
-                <div class="job-title">
-                    <h3>${job.title}</h3>
-                    <p class="company-name">${job.company}</p>
+// Function to display jobs
+function displayJobs(filteredJobs) {
+    const jobList = document.getElementById('jobList');
+    jobList.innerHTML = ''; // Clear previous jobs
+
+    filteredJobs.forEach(job => {
+        const jobCard = document.createElement('div');
+        jobCard.className = 'job-card';
+        jobCard.innerHTML = `
+            <div class="job-details">
+                <h2 class="job-title">${job.title}</h2>
+                <p class="company-name">${job.company}</p>
+                <p class="job-description">${job.description}</p>
+                <div class="job-tags">
+                    ${job.tags.map(tag => `<span class="job-tag">${tag}</span>`).join('')}
+                </div>
+                <div class="job-meta">
+                    <span><i class="fas fa-briefcase"></i> ${job.type}</span>
+                    <span><i class="fas fa-calendar-alt"></i> ${job.experience}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${job.location}</span>
+                </div>
+                <div class="job-actions">
+                    <a href="#" class="apply-btn">Apply Now</a>
+                    <a href="#" class="save-btn">Save Job</a>
                 </div>
             </div>
-            <div class="job-details">
-                <span><i class="fas fa-map-marker-alt"></i> ${job.location}</span>
-                <span><i class="fas fa-briefcase"></i> ${job.type}</span>
-                <span><i class="fas fa-money-bill-wave"></i> ${job.salary}</span>
-            </div>
-            <div class="job-description">
-                <p>${job.description ? job.description.substring(0, 150) + '...' : ''}</p>
-            </div>
-            <div class="job-tags">
-                ${job.tags ? job.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
-            </div>
-            <div class="job-footer">
-                <span class="posted-date">Posted ${new Date(job.posted).toLocaleDateString()}</span>
-                <button class="apply-btn">Apply Now</button>
-            </div>
-        </div>
-    `;
-}
-
-// Function to filter jobs
-async function filterJobs() {
-    try {
-        // Fetch jobs from MongoDB
-        const jobs = await fetchJobs();
-        console.log('Number of jobs:', jobs.length); // Debug log
-
-        const jobType = document.getElementById('jobTypeFilter')?.value || 'all';
-        const experience = document.getElementById('experienceFilter')?.value || 'all';
-        const location = document.getElementById('locationFilter')?.value || 'all';
-
-        let filteredJobs = jobs;
-
-        // Apply filters
-        if (jobType !== 'all') {
-            filteredJobs = filteredJobs.filter(job => job.type.toLowerCase() === jobType.toLowerCase());
-        }
-
-        if (experience !== 'all') {
-            filteredJobs = filteredJobs.filter(job => job.experience.toLowerCase() === experience.toLowerCase());
-        }
-
-        if (location !== 'all') {
-            filteredJobs = filteredJobs.filter(job => job.location.toLowerCase() === location.toLowerCase());
-        }
-
-        // Update job list
-        const jobList = document.getElementById('jobList');
-        if (jobList) {
-            if (filteredJobs.length === 0) {
-                jobList.innerHTML = '<div class="no-jobs">No jobs found</div>';
-            } else {
-                jobList.innerHTML = filteredJobs.map(job => createJobCard(job)).join('');
-            }
-        } else {
-            console.error('Job list container not found!'); // Debug log
-        }
-
-        // Update job count
-        const jobCount = document.getElementById('jobCount');
-        if (jobCount) {
-            jobCount.textContent = filteredJobs.length;
-        }
-    } catch (error) {
-        console.error('Error filtering jobs:', error);
-    }
-}
-
-// Initialize filters when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Page loaded, initializing jobs...'); // Debug log
-    
-    // Add event listeners to filter selects
-    const filterSelects = document.querySelectorAll('select[id$="Filter"]');
-    filterSelects.forEach(select => {
-        select.addEventListener('change', filterJobs);
+        `;
+        jobList.appendChild(jobCard);
     });
 
-    // Initial render
-    filterJobs();
-}); 
+    // Update job count
+    document.getElementById('jobCount').innerText = filteredJobs.length;
+}
+
+// Function to filter jobs based on selected criteria
+function filterJobs() {
+    const jobType = document.getElementById('jobTypeFilter').value;
+    const experienceLevel = document.getElementById('experienceFilter').value;
+    const location = document.getElementById('locationFilter').value;
+
+    const filteredJobs = jobs.filter(job => {
+        return (jobType === '' || job.type === jobType) &&
+               (experienceLevel === '' || job.experience === experienceLevel) &&
+               (location === '' || job.location === location);
+    });
+
+    displayJobs(filteredJobs);
+}
+
+// Event listeners for filters
+document.getElementById('jobTypeFilter').addEventListener('change', filterJobs);
+document.getElementById('experienceFilter').addEventListener('change', filterJobs);
+document.getElementById('locationFilter').addEventListener('change', filterJobs);
+
+// Initial display of all jobs
+displayJobs(jobs);
+
+// Add event listeners for Apply and Save buttons
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('apply-btn') || 
+        e.target.parentElement.classList.contains('apply-btn')) {
+        e.preventDefault();
+        alert('Application functionality will be implemented soon!');
+    }
+    
+    if (e.target.classList.contains('save-btn') || 
+        e.target.parentElement.classList.contains('save-btn')) {
+        e.preventDefault();
+        alert('Job saved to your favorites!');
+    }
+});
+
+// Redirect to jobs.html when Browse Jobs button is clicked (in other pages)
+function redirectToJobs() {
+    window.location.href = "jobs.html";
+}

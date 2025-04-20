@@ -1,22 +1,75 @@
+const API_URL = 'http://localhost:5000';
+
+// Authentication API functions
+const api = {
+    // Login function
+    async login(email, password) {
+        const response = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        if (data.success) {
+            localStorage.setItem('token', data.token); // Store token in localStorage
+        }
+        return data;
+    },
+
+    // Signup function
+    async signup(userData) {
+        const response = await fetch(`${API_URL}/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        });
+        return await response.json();
+    },
+
+    // Logout function
+    async logout() {
+        localStorage.removeItem('token'); // Remove token from localStorage
+        // No server-side logout needed
+        return { success: true }; // Simulate successful logout
+    },
+
+    // Get current user profile
+    async getCurrentUser() {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/current-user`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        return await response.json();
+    },
+
+    // (No more checkAuth needed - rely on getCurrentUser)
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("✅ script.js loaded");
     setupEventListeners();
-    checkForAuthRedirect();
     setupDropdownToggle();
-    updateUIFromStoredAuth();
+    checkAuthStatus();
+    checkForAuthRedirect(); // Keep this for potential future use of redirects
 });
 
 function setupDropdownToggle() {
     const userProfile = document.getElementById("userProfile");
     const dropdown = document.getElementById("accountDropdown");
-    
+
     if (userProfile && dropdown) {
         userProfile.addEventListener("click", function(e) {
             e.stopPropagation(); // Prevent event from bubbling up
             dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
         });
     }
-    
+
     // Close dropdown when clicking anywhere else
     document.addEventListener("click", function() {
         if (dropdown) {
@@ -29,7 +82,7 @@ function setupEventListeners() {
     // Tab switching
     document.getElementById("loginTab")?.addEventListener("click", showLoginTab);
     document.getElementById("signupTab")?.addEventListener("click", showSignupTab);
-    
+
     // Form submissions
     document.getElementById("loginForm")?.addEventListener("submit", function(e) {
         e.preventDefault();
@@ -39,7 +92,7 @@ function setupEventListeners() {
         e.preventDefault();
         signup();
     });
-    
+
     // Logout button
     document.getElementById("logoutBtn")?.addEventListener("click", logout);
 }
@@ -50,20 +103,20 @@ function checkForAuthRedirect() {
     if (urlParams.has('auth')) {
         // Remove the parameter from URL
         history.replaceState(null, '', window.location.pathname);
-        
-        // Check auth status from cookies/local storage
-        updateUIFromStoredAuth();
     }
 }
 
-// Update UI based on stored auth data
-function updateUIFromStoredAuth() {
-    // Check if we have user data in sessionStorage
-    const userData = sessionStorage.getItem('authUser');
-    if (userData) {
-        const user = JSON.parse(userData);
-        updateUIForAuthState(true, user);
-    } else {
+// Check authentication status using getCurrentUser
+async function checkAuthStatus() {
+    try {
+        const response = await api.getCurrentUser();
+        if (response.success) {
+            updateUIForAuthState(true, response.user);
+        } else {
+            updateUIForAuthState(false);
+        }
+    } catch (error) {
+        console.error("Auth check error:", error);
         updateUIForAuthState(false);
     }
 }
@@ -79,27 +132,14 @@ async function login() {
     message.className = "auth-message";
 
     try {
-        const response = await fetch("http://localhost:5000/login", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
+        const data = await api.login(email, password);
 
-        const data = await response.json();
-        
         if (data.success) {
             message.textContent = "Login successful!";
             message.className = "auth-message success";
-            
-            // Store user data in sessionStorage
-            sessionStorage.setItem('authUser', JSON.stringify(data.user));
-            
-            // Update UI directly from response
-            updateUIForAuthState(true, data.user);
-            
-            // Redirect to index.html with auth flag
-            window.location.href = "index.html?auth=true";
+            checkAuthStatus(); // Update UI after login
+            window.location.replace("index.html?auth=true"); // Keep redirect
+
         } else {
             throw new Error(data.message || "Login failed");
         }
@@ -124,7 +164,7 @@ function updateUIForAuthState(isLoggedIn, user = null) {
     if (isLoggedIn && user) {
         console.log("✅ User logged in:", user);
         updateUserUI(user);
-        if (elements.accountDropdown) elements.accountDropdown.style.display = "block";
+        if (elements.accountDropdown) elements.accountDropdown.style.display = "none"; // Hide by default, show on click
         if (elements.userProfile) elements.userProfile.style.display = "flex";
         if (elements.loginNavBtn) elements.loginNavBtn.style.display = "none";
         if (elements.authContainer) elements.authContainer.style.display = "none";
@@ -151,13 +191,13 @@ function updateUserUI(user) {
     };
 
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&length=1`;
-    
+
     if (elements.welcomeMessage) elements.welcomeMessage.textContent = `Welcome, ${user.name}!`;
     if (elements.username) elements.username.textContent = user.name;
     if (elements.userNameDropdown) elements.userNameDropdown.textContent = user.name;
     if (elements.userEmailDropdown) elements.userEmailDropdown.textContent = user.email;
-    if (elements.userAvatar) elements.userAvatar.src = avatarUrl;
-    if (elements.userAvatarDropdown) elements.userAvatarDropdown.src = avatarUrl;
+    if (elements.userAvatar && elements.userAvatar.tagName === 'IMG') elements.userAvatar.src = avatarUrl;
+    if (elements.userAvatarDropdown && elements.userAvatarDropdown.tagName === 'IMG') elements.userAvatarDropdown.src = avatarUrl;
 }
 
 // Enhanced signup function
@@ -174,15 +214,8 @@ async function signup() {
     }
 
     try {
-        const response = await fetch("http://localhost:5000/signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password }),
-            credentials: "include"
-        });
+        const data = await api.signup({ name, email, password });
 
-        const data = await response.json();
-        
         message.textContent = data.message;
         message.className = data.success ? "auth-message success" : "auth-message error";
 
@@ -200,54 +233,38 @@ async function signup() {
 // Auto-login after signup
 async function loginAfterSignup(email, password) {
     try {
-        const response = await fetch("http://localhost:5000/login", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
+        const data = await api.login(email, password);
 
-        const data = await response.json();
-        
         if (data.success) {
-            // Store user data in sessionStorage
-            sessionStorage.setItem('authUser', JSON.stringify(data.user));
-            
-            updateUIForAuthState(true, data.user);
-            // Redirect to index.html with auth flag
-            window.location.href = "index.html?auth=true";
+            checkAuthStatus(); // Update UI after login
+            window.location.replace("index.html?auth=true"); // Keep redirect
         }
     } catch (error) {
         console.error("Auto-login failed:", error);
     }
 }
 
-// Logout function
+// Enhanced logout function with better error handling
 async function logout() {
     try {
-        const response = await fetch("http://localhost:5000/logout", {
-            method: "POST",
-            credentials: "include"
-        });
+        const response = await api.logout(); // Clears token from localStorage
 
-        const data = await response.json();
-        
-        if (data.success) {
-            // Clear client-side state
-            document.cookie.split(";").forEach(cookie => {
-                document.cookie = cookie.replace(/^ +/, "").replace(/=.*/, 
-                    "=;expires=" + new Date().toUTCString() + ";path=/");
-            });
-            
-            // Remove user data from sessionStorage
-            sessionStorage.removeItem('authUser');
-            
-            updateUIForAuthState(false);
-            window.location.href = "index.html";
+        if (!response.success) {
+            console.error("Logout failed");
         }
+        // Clear client-side auth state
+        clearClientAuthState();
     } catch (error) {
         console.error("Logout error:", error);
+        // Ensure client state is cleared even on error
+        clearClientAuthState();
     }
+}
+
+// Helper function to clear client auth state
+function clearClientAuthState() {
+    localStorage.removeItem('token'); // Remove token
+    updateUIForAuthState(false);
 }
 
 // Tab management and other helper functions remain the same
@@ -255,7 +272,7 @@ function showLoginTab() {
     // Set active tab
     document.getElementById('loginTab').classList.add('active');
     document.getElementById('signupTab').classList.remove('active');
-    
+
     // Show login form, hide signup form
     document.getElementById('loginForm').classList.add('active');
     document.getElementById('signupForm').classList.remove('active');
@@ -265,13 +282,24 @@ function showSignupTab() {
     // Set active tab
     document.getElementById('signupTab').classList.add('active');
     document.getElementById('loginTab').classList.remove('active');
-    
+
     // Show signup form, hide login form
     document.getElementById('signupForm').classList.add('active');
     document.getElementById('loginForm').classList.remove('active');
 }
 
-// Initialize with login tab active by default
-document.addEventListener('DOMContentLoaded', function() {
+// Protected page navigation
+function checkAndProtectPage() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        // Redirect to login page if not authenticated
+        window.location.href = "login.html?redirect=" + encodeURIComponent(window.location.pathname);
+        return false;
+    }
+    return true;
+}
+
+// Initialize with login tab active by default if on login page
+if (document.getElementById('loginTab') && document.getElementById('signupTab')) {
     showLoginTab();
-});
+}
