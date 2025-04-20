@@ -9,6 +9,19 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
+// Add this after your requires, before middleware setup
+const allowedOrigins = [
+    'https://naukariready.vercel.app',
+    'https://www.naukariready.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'http://127.0.0.1:5500',
+    'http://127.0.0.1:5501',
+    'http://localhost:5500',
+    undefined,
+    'null'
+];
+
 // Create uploads directory if it doesn't exist
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -57,17 +70,13 @@ const PORT = process.env.PORT || 5000;
 // 🛠️ MIDDLEWARE SETUP
 // ==============================================
 
-const allowedOrigins = [
-    'https://naukariready.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173'
-];
-
+// Update your CORS configuration
 app.use(cors({
     origin: function(origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, origin);
+            callback(null, true);
         } else {
+            console.log('Blocked origin:', origin);
             callback(new Error('Not allowed by CORS'));
         }
     },
@@ -78,16 +87,20 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-// Remove or update the additional headers middleware
+// Update your additional headers middleware
 app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
     
     if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
+        return res.status(200).end();
     }
+    next();
 });
 
 app.use(express.json());
