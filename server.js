@@ -67,6 +67,7 @@ app.use(cors({
             'http://localhost:3000',
             'http://localhost:5173', // For Vite
             'http://localhost:8080', // For webpack
+            'https://naukariready.vercel.app', // Add your Vercel domain
             undefined, // For local file access
             'null'    // For local file access
         ];
