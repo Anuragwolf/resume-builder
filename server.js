@@ -178,10 +178,6 @@ app.post("/signup", async (req, res) => {
         });
 
         await newUser.save();
-
-        // Set CORS headers explicitly for this response
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Credentials', 'true');
         
         res.status(201).json({
             success: true,
