@@ -125,11 +125,64 @@ const UserSchema = new mongoose.Schema({
     company: String,
     industry: String,
     experience: String,
-    skills: [String], // Array of skills
-    education: String, // Store as JSON string for flexibility
-    avatar: String, // URL to user avatar
+    skills: [String],
+    education: String,
+    avatar: String,
+    appliedJobs: [
+      {
+        jobId: mongoose.Schema.Types.ObjectId,
+        title: String,
+        company: String,
+        description: String,
+        appliedAt: { type: Date, default: Date.now }
+      }
+    ]
+  }, { timestamps: true });
+  
+// Add this after your User model definition
+// ==============================================
+// 💼 JOB MODEL
+// ==============================================
+// Keep your existing Job schema with minor modifications
+const JobSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    company: { type: String, required: true },
+    type: { type: String, required: true },
+    experience: { type: String, required: true },
+    location: { type: String, required: true },
+    salary: { type: String, required: true },
+    description: { type: String, required: true },
+    requirements: { type: String, required: true },
+    tags: [String],
+    logo: String,
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    isUserPosted: { type: Boolean, default: true }, // Flag to identify user-posted jobs
     createdAt: { type: Date, default: Date.now }
-}, { timestamps: true });
+});
+
+// Create a new schema for dummy/sample jobs
+const DummyJobSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    company: { type: String, required: true },
+    type: { type: String, required: true },
+    experience: { type: String, required: true },
+    location: { type: String, required: true },
+    salary: { type: String, required: true },
+    description: { type: String, required: true },
+    requirements: { type: String, required: true },
+    tags: [String],
+    logo: String,
+    isUserPosted: { type: Boolean, default: false }, // Always false for dummy jobs
+    createdAt: { type: Date, default: Date.now }
+});
+
+const Job = mongoose.model("Job", JobSchema);
+const DummyJob = mongoose.model("DummyJob", DummyJobSchema);
+
+// Function to seed dummy jobs (call this during initial setup)
+
+
+// Call this function when your server starts
 
 const User = mongoose.model("User", UserSchema);
 
@@ -438,6 +491,399 @@ app.get("/current-user", authenticateToken, async (req, res) => {
         });
     }
 });
+
+// Updated apply-job route
+app.post("/api/apply-job", authenticateToken, async (req, res) => {
+    try {
+        const { jobId, title, company, description } = req.body;
+
+        console.log("Received application:", { 
+            userId: req.user.userId,
+            jobId, 
+            title, 
+            company 
+        });
+
+        // Check if jobId, title, or company is missing in the request body
+        if (!jobId || !title || !company) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Job ID, title, and company are required" 
+            });
+        }
+
+        // Validate if the jobId is a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(jobId)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Invalid Job ID format" 
+            });
+        }
+
+        // Convert jobId to ObjectId
+        const jobObjectId = new mongoose.Types.ObjectId(jobId);
+
+        // Check if the job exists (in either collection)
+        let job = await Job.findById(jobObjectId);
+        if (!job) {
+            job = await DummyJob.findById(jobObjectId);
+            if (!job) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Job not found"
+                });
+            }
+        }
+
+        // Create the job application object
+        const appliedJob = {
+            jobId: jobObjectId,
+            title,
+            company,
+            description: description || "",
+            appliedAt: new Date()
+        };
+
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            { $push: { appliedJobs: appliedJob } },
+            { new: true }
+        ).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: "User not found" 
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Job applied successfully",
+            user
+        });
+
+    } catch (err) {
+        console.error("Apply job error:", err);
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error: " + err.message 
+        });
+    }
+});
+// Fix for remove-applied-job endpoint
+
+// GET /my-applied-jobs route
+app.get("/my-applied-jobs", authenticateToken, async (req, res) => {
+    try {
+        // Find the user by their userId (from the JWT token)
+        const user = await User.findById(req.user.userId).select("appliedJobs");
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Return the applied jobs
+        res.json({
+            success: true,
+            appliedJobs: user.appliedJobs
+        });
+    } catch (err) {
+        console.error("Error fetching applied jobs:", err);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+// POST request to remove an applied job
+// POST request to remove an applied job
+app.post('/remove-applied-job', authenticateToken, async (req, res) => {
+    const { jobId } = req.body;
+    const userId = req.user.userId; // Fixed: changed from req.user.id to req.user.userId
+
+    try {
+        // Find the user and remove the job from their appliedJobs array
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $pull: { appliedJobs: { jobId: jobId } } }, // Pull the job from the appliedJobs array
+            { new: true } // Return the updated user
+        ).select("appliedJobs");
+
+        if (!user) {
+            return res.status(400).json({ success: false, message: 'User not found' });
+        }
+
+        // Return the updated list of applied jobs
+        res.status(200).json({
+            success: true,
+            message: 'Job removed successfully.',
+            appliedJobs: user.appliedJobs
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error. Please try again later.' });
+    }
+});
+
+    // ==============================================
+// 💼 JOB ROUTES
+// ==============================================
+
+// POST /api/jobs - Create a new job posting
+app.post("/api/jobs", authenticateToken, async (req, res) => {
+    try {
+        const {
+            title,
+            company,
+            type,
+            experience,
+            location,
+            salary,
+            description,
+            requirements,
+            tags,
+            logo
+        } = req.body;
+
+        // Validate required fields
+        if (!title || !company || !type || !experience || !location || !salary || !description || !requirements) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+
+        // Create new job
+        const newJob = new Job({
+            title,
+            company,
+            type,
+            experience,
+            location,
+            salary,
+            description,
+            requirements,
+            tags: tags || [],
+            logo: logo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(company),
+            postedBy: req.user.userId,
+            isUserPosted: true
+        });
+
+        await newJob.save();
+
+        res.status(201).json({
+            success: true,
+            message: "Job posted successfully",
+            job: newJob
+        });
+
+    } catch (error) {
+        console.error("Job posting error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to post job: " + error.message
+        });
+    }
+});
+
+
+// GET /api/jobs - Get all jobs
+app.get("/api/jobs", async (req, res) => {
+    try {
+        // Get query parameters
+        const { type, isUserPosted } = req.query;
+        
+        let userJobs = [];
+        let dummyJobs = [];
+        
+        // Filter options
+        const filter = {};
+        if (type) filter.type = type;
+        
+        // If specifically requesting only user-posted or dummy jobs
+        if (isUserPosted === 'true') {
+            userJobs = await Job.find(filter).sort({ createdAt: -1 });
+            res.json({
+                success: true,
+                jobs: userJobs
+            });
+            return;
+        } else if (isUserPosted === 'false') {
+            dummyJobs = await DummyJob.find(filter).sort({ createdAt: -1 });
+            res.json({
+                success: true,
+                jobs: dummyJobs
+            });
+            return;
+        }
+        
+        // If no filter specified, get both types
+        userJobs = await Job.find(filter).sort({ createdAt: -1 });
+        dummyJobs = await DummyJob.find(filter).sort({ createdAt: -1 });
+        
+        // Combine the results
+        const allJobs = [...userJobs, ...dummyJobs].sort((a, b) => 
+            b.createdAt - a.createdAt
+        );
+        
+        res.json({
+            success: true,
+            jobs: allJobs
+        });
+    } catch (error) {
+        console.error("Error fetching jobs:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch jobs"
+        });
+    }
+});
+
+// GET /api/jobs/:id - Get single job by ID
+app.get("/api/jobs/:id", async (req, res) => {
+    try {
+        // Try to find in user jobs first
+        let job = await Job.findById(req.params.id);
+        
+        // If not found, try dummy jobs
+        if (!job) {
+            job = await DummyJob.findById(req.params.id);
+        }
+        
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: "Job not found"
+            });
+        }
+        
+        res.json({
+            success: true,
+            job
+        });
+    } catch (error) {
+        console.error("Error fetching job:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch job"
+        });
+    }
+});
+
+// POST /api/dummy-jobs - Admin route to add dummy jobs (protected)
+app.post("/api/dummy-jobs", authenticateToken, async (req, res) => {
+    try {
+        // You might want to add an isAdmin check here
+        // if (!req.user.isAdmin) return res.status(403).json({success: false, message: "Unauthorized"});
+        
+        const {
+            title,
+            company,
+            type,
+            experience,
+            location,
+            salary,
+            description,
+            requirements,
+            tags,
+            logo
+        } = req.body;
+
+        // Validate required fields
+        if (!title || !company || !type || !experience || !location || !salary || !description || !requirements) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+
+        // Create new dummy job
+        const newDummyJob = new DummyJob({
+            title,
+            company,
+            type,
+            experience,
+            location,
+            salary,
+            description,
+            requirements,
+            tags: tags || [],
+            logo: logo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(company),
+            isUserPosted: false
+        });
+
+        await newDummyJob.save();
+
+        res.status(201).json({
+            success: true,
+            message: "Dummy job created successfully",
+            job: newDummyJob
+        });
+
+    } catch (error) {
+        console.error("Dummy job creation error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to create dummy job: " + error.message
+        });
+    }
+});
+
+// GET /api/my-jobs - Get only the authenticated user's posted jobs (from Job schema only)
+app.get("/api/my-jobs", authenticateToken, async (req, res) => {
+    try {
+        // Find only jobs posted by the authenticated user
+        const jobs = await Job.find({ postedBy: req.user.userId })
+                             .sort({ createdAt: -1 });
+        
+        res.json({
+            success: true,
+            jobs
+        });
+    } catch (error) {
+        console.error("Error fetching user's jobs:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch jobs"
+        });
+    }
+});
+
+// DELETE /api/jobs/:id - Delete a job posting (only from Job schema)
+app.delete("/api/jobs/:id", authenticateToken, async (req, res) => {
+    try {
+        const jobId = req.params.id;
+        
+        // Check if job exists and belongs to the user
+        const job = await Job.findOne({ 
+            _id: jobId,
+            postedBy: req.user.userId
+        });
+        
+        if (!job) {
+            return res.status(404).json({
+                success: false,
+                message: "Job not found or you don't have permission to delete it"
+            });
+        }
+        
+        // Delete the job
+        await Job.findByIdAndDelete(jobId);
+        
+        res.json({
+            success: true,
+            message: "Job deleted successfully"
+        });
+        
+    } catch (error) {
+        console.error("Error deleting job:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete job: " + error.message
+        });
+    }
+});
+
 //====================================
 // 🚀 START SERVER
 // ==============================================

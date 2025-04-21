@@ -430,6 +430,135 @@
                 flex-direction: column;
             }
         }
+        /* General job card styling */
+.job-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.job-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.job-details {
+    padding: 10px;
+}
+
+.job-title {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.company-name {
+    font-weight: bold;
+    color: #555;
+}
+
+.job-description {
+    font-size: 1em;
+    margin-bottom: 15px;
+    color: #777;
+}
+
+.job-meta {
+    font-size: 0.9em;
+    color: #555;
+}
+
+.job-meta span {
+    margin-right: 15px;
+}
+
+.job-meta i {
+    margin-right: 5px;
+}
+
+.job-applied-date {
+    font-size: 0.9em;
+    color: #888;
+    margin-top: 10px;
+}
+
+/* Applied job card specific styling */
+.applied-job-card {
+    background-color: #ffffff;
+}
+
+.applied-job-card .job-meta {
+    font-weight: bold;
+}
+
+.applied-job-card .job-applied-date {
+    font-size: 1em;
+    color: #4caf50;
+}
+.remove-btn {
+        background-color: white;
+        color: #ef4444;
+        border: 1px solid #ef4444;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .remove-btn:hover {
+        background-color: #ef4444;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(239, 68, 68, 0.2);
+    }
+    
+    .remove-btn:active {
+        transform: translateY(0px);
+        box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+    }
+    
+    /* Animation for the remove button */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Add a warning variant for more important actions */
+    .remove-btn.warning {
+        background-color: #fee2e2;
+    }
+    
+    /* Animated confirmation state */
+    .remove-btn.confirm {
+        animation: pulse 0.5s ease;
+        background-color: #fef2f2;
+        border-width: 2px;
+    }
+
+    /* Updated job footer with better alignment for the button */
+    .job-card-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #f9fafb;
+    }
+    
+    .job-actions {
+        display: flex;
+        gap: 10px;
+    }
     </style>
 </head>
 <body>
@@ -439,12 +568,12 @@
     <!-- Navbar -->
     <div class="site-name"><img src="..\images\job.png" class="job-img">NaukriReady - Find Your Dream Job</div>
     <div class="navbar animate__animated animate__slideInDown">
-        <a href="#"><i class="fas fa-home"></i> Home</a>
-        <a href="jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
-        <a href="resume-maker.html"><i class="fas fa-file-alt"></i> Create Resume</a>
+        <a href="../index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="../jobs.html"><i class="fas fa-briefcase"></i> Jobs</a>
+        <a href="../resume-maker.html"><i class="fas fa-file-alt"></i> Create Resume</a>
         <a href="#"><i class="fas fa-info-circle"></i> About Us</a>
         <a href="#"><i class="fas fa-envelope"></i> Contact</a>
-        <a href="login.html" id="loginNavBtn" onclick="showLoginTab()"><i class="fas fa-sign-in-alt"></i> Login</a>
+        <a href="../login.html" id="loginNavBtn" onclick="showLoginTab()"><i class="fas fa-sign-in-alt"></i> Login</a>
         <div class="user-profile" id="userProfile">
             <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="User Avatar">
             <span class="username" id="username">User</span>
@@ -457,7 +586,7 @@
                     <p id="userEmailDropdown">user@example.com</p>
                 </div>
                 <ul class="account-dropdown-menu">
-                    <li><a href="user/profile.html"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="../user/profile.html"><i class="fas fa-user-circle"></i> My Profile</a></li>
                     <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
                     <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
                     <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
@@ -478,7 +607,7 @@
                 <p id="userLocationHeader"><i class="fas fa-map-marker-alt"></i> <span id="userLocation">Loading...</span></p>
                 <div class="profile-actions">
                     <button class="button" id="editProfileBtn"><i class="fas fa-pencil-alt"></i> <a href="editprofile.html"> Profile</a></button>
-                    <button class="button button-secondary"><i class="fas fa-download"></i> Download Resume</button>
+                    <button class="button button-secondary" id="postJobBtn"><i class="fas fa-plus-circle"></i> Post a Job</button>
                 </div>
             </div>
         </div>
@@ -558,7 +687,11 @@
         <div id="tab-applications" class="tab-content">
             <div class="profile-section">
                 <h3><i class="fas fa-briefcase"></i> Job Applications</h3>
-                <p>You haven't applied to any jobs yet.</p>
+                <div id="appliedJobsSection">
+                    <h1>Your Applied Jobs</h1>
+                    <div id="appliedJobsList"></div>
+                </div>
+                
                 <button class="button" id="browseJobsBtn"><i class="fas fa-search"></i> Browse Jobs</button>
             </div>
         </div>

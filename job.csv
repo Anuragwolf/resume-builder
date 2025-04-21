@@ -1,0 +1,21 @@
+title,company,description,tags,type,experience_level,location,salary,jobId
+Frontend Developer,TechNova,"Develop UI components and work with React.js","JavaScript;HTML;CSS;React",Full-time,Entry,Remote,₹5,00,000,J001
+Backend Developer,CodeSphere,"Build and maintain server-side APIs using Node.js","Node.js;MongoDB;Express",Full-time,Mid,Bangalore,₹7,50,000,J002
+Marketing Intern,BrandHive,"Support digital marketing campaigns and SEO tasks","SEO;Content Writing;Analytics",Internship,Entry,Mumbai,₹2,00,000,J004
+Data Analyst,DataNest,"Analyze large datasets and build visualizations","Python;SQL;Power BI",Remote,Mid,Pune,₹5,50,000,J005
+Mobile App Developer,AppWorld,"Develop mobile apps using Flutter or React Native","Flutter;React Native;Dart",Freelance,Entry,Remote,₹5,00,000,J006
+DevOps Engineer,CloudZone,"Implement CI/CD pipelines and manage cloud infra","AWS;Docker;Jenkins;Kubernetes",Full-time,Senior,Hyderabad,₹8,50,000,J007
+Product Manager,VisionNext,"Lead product development and cross-functional teams","Agile;Scrum;Leadership",Full-time,Lead,Bangalore,₹12,00,000,J008
+Technical Writer,WriteWise,"Create technical documentation and manuals","Documentation;Markdown;Git",Remote,Mid,Chennai,₹4,50,000,J009
+Customer Support,HelpConnect,"Provide chat/email support and troubleshoot issues","Communication;CRM;Patience",Part-time,Entry,Remote,₹3,00,000,J010
+Security Analyst,SafeguardSys,"Monitor and protect IT infrastructure from threats","Cybersecurity;SIEM;Monitoring",Full-time,Mid,Pune,₹6,00,000,J011
+Full Stack Developer,StackMagic,"Develop full-stack apps using MERN stack","React;Node.js;MongoDB;Express",Full-time,Senior,Delhi,₹10,00,000,J012
+HR Executive,PeoplePros,"Handle hiring and employee engagement processes","Recruitment;Onboarding;HRMS",Full-time,Entry,Mumbai,₹3,20,000,J013
+AI Research Intern,NeuroNet,"Support ML model building and data annotation","Python;TensorFlow;Data Prep",Internship,Entry,Bangalore,₹2,50,000,J014
+Cloud Architect,CloudScale,"Design scalable cloud architectures on AWS","AWS;Terraform;Architecture",Full-time,Lead,Gurgaon,₹15,00,000,J015
+Content Strategist,InkWave,"Plan and manage content across platforms","SEO;Copywriting;Social Media",Part-time,Mid,Remote,₹4,80,000,J016
+QA Engineer,BugBlitz,"Create test plans and perform automated testing","Selenium;Test Cases;JIRA",Full-time,Mid,Hyderabad,₹6,20,000,J017
+Business Analyst,Insightify,"Analyze business needs and build reports","Excel;SQL;Business Strategy",Full-time,Senior,Bangalore,₹9,00,000,J018
+Sales Manager,QuickMart,"Lead the regional sales and growth strategies","Sales;Retail;CRM",Full-time,Lead,Kolkata,₹11,50,000,J019
+Game Developer,PixelForge,"Create games using Unity and C#","Unity;C#;Game Design",Full-time,Mid,Chennai,₹7,00,000,J020
+Motion Designer,LoopLab,"Design animated videos and transitions","After Effects;Animation;Design",Freelance,Entry,Remote,₹4,00,000,J021

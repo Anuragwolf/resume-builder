@@ -186,7 +186,7 @@
                     <p id="userEmailDropdown">user@example.com</p>
                 </div>
                 <ul class="account-dropdown-menu">
-                    <li><a href="#"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                    <li><a href="user/profile.html"><i class="fas fa-user-circle"></i> My Profile</a></li>
                     <li><a href="#"><i class="fas fa-briefcase"></i> My Applications</a></li>
                     <li><a href="#"><i class="fas fa-bookmark"></i> Saved Jobs</a></li>
                     <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
@@ -343,47 +343,77 @@
 
         // Function to handle form submission
         async function handleSubmit(event) {
-            event.preventDefault();
-            
-            // Get form data
-            const formData = {
-                title: document.getElementById('jobTitle').value,
-                company: document.getElementById('companyName').value,
-                type: document.getElementById('jobType').value,
-                experience: document.getElementById('experience').value,
-                location: document.getElementById('location').value,
-                salary: document.getElementById('salary').value,
-                description: document.getElementById('description').value,
-                requirements: document.getElementById('requirements').value,
-                tags: Array.from(document.getElementById('tagsList').children).map(tag => tag.textContent.trim()),
-                logo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(document.getElementById('companyName').value)
-            };
+    event.preventDefault();
+    
+    try {
+        console.log("Starting job submission...");
+        
+        const formData = {
+            title: document.getElementById('jobTitle').value,
+            company: document.getElementById('companyName').value,
+            type: document.getElementById('jobType').value,
+            experience: document.getElementById('experience').value,
+            location: document.getElementById('location').value,
+            salary: document.getElementById('salary').value,
+            description: document.getElementById('description').value,
+            requirements: document.getElementById('requirements').value,
+            tags: Array.from(document.getElementById('tagsList').children).map(tag => tag.textContent.trim()),
+            logo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(document.getElementById('companyName').value),
+            jobId: generateObjectId()
+        };
 
-            try {
-                // Send data to MongoDB
-                const response = await fetch('http://localhost:5000/api/jobs', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
+        console.log("Form data prepared:", formData);
 
-                if (!response.ok) {
-                    throw new Error('Failed to post job');
-                }
-
-                // Show success message
-                alert('Job posted successfully!');
-                
-                // Redirect to jobs page
-                window.location.href = 'jobs.html';
-            } catch (error) {
-                console.error('Error posting job:', error);
-                alert('Failed to post job. Please try again.');
-            }
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error('No authentication token found');
         }
 
+        console.log("Sending request to server...");
+        
+        const response = await fetch('http://localhost:5000/api/jobs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        });
+
+        console.log("Response received:", response);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Server responded with error:", errorData);
+            throw new Error(errorData.message || 'Failed to post job');
+        }
+
+        const result = await response.json();
+        console.log("Job posted successfully:", result);
+        
+        alert('Job posted successfully!');
+        window.location.href = 'jobs.html';
+
+    } catch (error) {
+        console.error("Full error details:", {
+            error: error,
+            message: error.message,
+            stack: error.stack
+        });
+        alert(`Error posting job: ${error.message}`);
+    }
+}
+
+
+// Helper function to generate MongoDB-like ObjectIDs
+function generateObjectId() {
+    const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
+    const random = Array(16)
+        .fill(0)
+        .map(() => Math.floor(Math.random() * 16).toString(16))
+        .join('');
+    return `${timestamp}${random}`.substring(0, 24);
+}
         // Add event listener to the form
         document.getElementById('jobPostForm').addEventListener('submit', handleSubmit);
 
@@ -432,28 +462,23 @@
 
             const preview = document.getElementById('jobPreview');
             preview.innerHTML = `
-                <h3>${title || 'Job Title'}</h3>
+        <div class="job-card">
+            <div class="job-details">
+                <h2 class="job-title">${title || 'Job Title'}</h2>
                 <p class="company-name">${company || 'Company Name'}</p>
-                <div class="job-details">
-                    <span><i class="fas fa-briefcase"></i> ${type || 'Job Type'}</span>
-                    <span><i class="fas fa-user-tie"></i> ${experience || 'Experience Level'}</span>
-                    <span><i class="fas fa-map-marker-alt"></i> ${location || 'Location'}</span>
-                    <span><i class="fas fa-money-bill-wave"></i> ${salary || 'Salary Range'}</span>
-                </div>
-                <div class="job-description">
-                    <h4>Description</h4>
-                    <p>${description || 'Job Description'}</p>
-                </div>
-                <div class="job-requirements">
-                    <h4>Requirements</h4>
-                    <ul>
-                        ${requirements.split('\n').map(req => req.trim()).filter(req => req).map(req => `<li>${req}</li>`).join('')}
-                    </ul>
-                </div>
+                <p class="job-description">${description || 'Job Description'}</p>
                 <div class="job-tags">
-                    ${currentTags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    ${currentTags.map(tag => `<span class="job-tag">${tag}</span>`).join('')}
                 </div>
-            `;
+                <div class="job-meta">
+                    <span><i class="fas fa-briefcase"></i> ${type || 'Job Type'}</span>
+                    <span><i class="fas fa-calendar-alt"></i> ${experience || 'Experience Level'}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${location || 'Location'}</span>
+                    ${salary ? `<span><i class="fas fa-money-bill-wave"></i> ${salary}</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
         }
 
         // Add event listeners to form fields for live preview
