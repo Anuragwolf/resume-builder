@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { body, validationResult } = require('express-validator');
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken');
@@ -62,7 +63,9 @@ const upload = multer({
 
 
 const app = express();
-// Serve static files from uploads directory
+// Fix the middleware setup
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));  // Fix: urlParser -> urlencoded
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 const PORT = process.env.PORT || 5000;
 
@@ -194,102 +197,300 @@ const generateToken = (userId) => {
     });
 };
 
+// Admin Schema
+const AdminSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ['admin', 'superadmin'], default: 'admin' }
+}, { timestamps: true });
+
+const Admin = mongoose.model('Admin', AdminSchema);
+
+// Admin authentication middleware
+const authenticateAdmin = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({
+            success: false,
+            message: "No token provided",
+            authenticated: false
+        });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.JWT_SECRET_ADMIN || 'admin-secret-key', (err, decoded) => {
+        if (err) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid or expired token",
+                authenticated: false
+            });
+        }
+        req.admin = decoded;
+        next();
+    });
+};
+
+// ==============================================
+// 👑 ADMIN ROUTES
+// ==============================================
+
+// ADMIN LOGIN
+app.post("/admin/login", 
+    // ... existing validation ...
+    async (req, res) => {
+        try {
+            // ... existing code ...
+            res.json({
+                success: true,
+                message: "Admin login successful",
+                token,
+                admin: {
+                    id: admin._id,
+                    name: admin.name,
+                    email: admin.email,
+                    role: admin.role
+                }
+            });
+        } catch (error) {
+            // ... error handling ...
+        }
+    }
+);
+// GET ALL USERS (ADMIN ONLY)
+app.get("/admin/users", authenticateAdmin, async (req, res) => {
+    try {
+        const users = await User.find().select('-password');
+        res.json({
+            success: true,
+            count: users.length,
+            users
+        });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch users" });
+    }
+});
+
+// GET ALL JOBS (ADMIN ONLY)
+app.get("/admin/jobs", authenticateAdmin, async (req, res) => {
+    try {
+        const userJobs = await Job.find().populate('postedBy', 'name email');
+        const dummyJobs = await DummyJob.find();
+        
+        res.json({
+            success: true,
+            userJobs,
+            dummyJobs,
+            totalJobs: userJobs.length + dummyJobs.length
+        });
+    } catch (error) {
+        console.error("Error fetching jobs:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch jobs" });
+    }
+});
+
+// DELETE USER (ADMIN ONLY)
+app.delete("/admin/users/:id", authenticateAdmin, async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+        
+        // Also delete jobs posted by this user
+        await Job.deleteMany({ postedBy: req.params.id });
+        
+        res.json({
+            success: true,
+            message: "User and associated data deleted successfully"
+        });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        res.status(500).json({ success: false, message: "Failed to delete user" });
+    }
+});
+
+// DELETE JOB (ADMIN ONLY)
+app.delete("/admin/jobs/:id", authenticateAdmin, async (req, res) => {
+    try {
+        // Try to delete from both collections
+        const userJob = await Job.findByIdAndDelete(req.params.id);
+        const dummyJob = await DummyJob.findByIdAndDelete(req.params.id);
+        
+        if (!userJob && !dummyJob) {
+            return res.status(404).json({ success: false, message: "Job not found" });
+        }
+        
+        res.json({
+            success: true,
+            message: "Job deleted successfully"
+        });
+    } catch (error) {
+        console.error("Error deleting job:", error);
+        res.status(500).json({ success: false, message: "Failed to delete job" });
+    }
+});
+
+// GET STATISTICS (ADMIN ONLY)
+app.get("/admin/stats", authenticateAdmin, async (req, res) => {
+    try {
+        const usersCount = await User.countDocuments();
+        const userJobsCount = await Job.countDocuments();
+        const dummyJobsCount = await DummyJob.countDocuments();
+        const recentUsers = await User.find()
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('name email createdAt');
+        
+        res.json({
+            success: true,
+            stats: {
+                totalUsers: usersCount,
+                totalUserJobs: userJobsCount,
+                totalDummyJobs: dummyJobsCount,
+                totalJobs: userJobsCount + dummyJobsCount,
+                recentUsers
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching stats:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch statistics" });
+    }
+});
 // ==============================================
 // 🔐 AUTH ROUTES
 // ==============================================
 
 // 🟢 SIGNUP
-app.post("/signup", async (req, res) => {
-    try {
-        const { name, email, password, phone, location, position, experience, education } = req.body;
-
-        if (!name || !email || !password) {
+app.post("/signup", 
+    [
+        body('name').notEmpty().withMessage('Name is required')
+            .isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
+        body('email').isEmail().withMessage('Please enter a valid email')
+            .normalizeEmail(),
+        body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+        body('phone').optional().isMobilePhone().withMessage('Please enter a valid phone number'),
+        body('location').optional().trim().escape(),
+        body('position').optional().trim().escape(),
+        body('experience').optional().trim().escape(),
+        body('education').optional().trim().escape()
+    ],
+    async (req, res) => {
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
             return res.status(400).json({
                 success: false,
-                message: "All fields are required"
+                message: "Validation failed",
+                errors: errors.array()
             });
         }
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({
-                success: false,
-                message: "Email already registered"
-            });
-        }
+        try {
+            const { name, email, password, phone, location, position, experience, education } = req.body;
 
-        const hashedPassword = await bcrypt.hash(password, 12);
-        const newUser = new User({
-            name,
-            email,
-            password: hashedPassword,
-            phone,
-            location,
-            position,
-            experience,
-            education
-        });
-
-        await newUser.save();
-        
-        res.status(201).json({
-            success: true,
-            message: "User created successfully",
-            user: {
-                id: newUser._id,
-                name: newUser.name,
-                email: newUser.email
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already registered"
+                });
             }
-        });
 
-    } catch (error) {
-        console.error("Signup Error:", error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
+            const hashedPassword = await bcrypt.hash(password, 12);
+            const newUser = new User({
+                name,
+                email,
+                password: hashedPassword,
+                phone,
+                location,
+                position,
+                experience,
+                education
+            });
+
+            await newUser.save();
+            
+            res.status(201).json({
+                success: true,
+                message: "User created successfully",
+                user: {
+                    id: newUser._id,
+                    name: newUser.name,
+                    email: newUser.email
+                }
+            });
+
+        } catch (error) {
+            console.error("Signup Error:", error);
+            res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            });
+        }
     }
-});
+);
 
 // 🔵 LOGIN
-app.post("/login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(401).json({
+app.post("/login", 
+    [
+        body('email').isEmail().withMessage('Please enter a valid email')
+            .normalizeEmail(),
+        body('password').notEmpty().withMessage('Password is required')
+    ],
+    async (req, res) => {
+        // Check for validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
                 success: false,
-                message: "Invalid credentials"
+                message: "Validation failed",
+                errors: errors.array()
             });
         }
 
-        const token = generateToken(user._id);
+        try {
+            const { email, password } = req.body;
+            const user = await User.findOne({ email });
 
-        const userProfile = {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            location: user.location,
-            position: user.position,
-            experience: user.experience,
-            skills: user.skills,
-            education: user.education
-        };
+            if (!user || !(await bcrypt.compare(password, user.password))) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid credentials"
+                });
+            }
 
-        res.json({
-            success: true,
-            message: "Login successful",
-            user: userProfile,
-            token // Send token to client
-        });
+            const token = generateToken(user._id);
 
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ success: false, message: "Login failed" });
+            const userProfile = {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                location: user.location,
+                position: user.position,
+                experience: user.experience,
+                skills: user.skills,
+                education: user.education
+            };
+
+            res.json({
+                success: true,
+                message: "Login successful",
+                user: userProfile,
+                token
+            });
+
+        } catch (error) {
+            console.error("Login error:", error);
+            res.status(500).json({ success: false, message: "Login failed" });
+        }
     }
-});
+);
 
 // 🔴 LOGOUT (No server-side logout needed with JWT)
 
